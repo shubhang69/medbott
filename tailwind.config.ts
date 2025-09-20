@@ -90,6 +90,10 @@ export default {
           from: { opacity: '0', transform: 'scale(0.9)' },
           to: { opacity: '1', transform: 'scale(1)' },
         },
+        'waveform': {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '100%': { transform: 'scale(2.5)', opacity: '0' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -97,6 +101,7 @@ export default {
         'glow': 'glow 3s ease-in-out infinite',
         'fade-in': 'fade-in 0.8s ease-out forwards',
         'fade-in-scale': 'fade-in-scale 0.5s ease-out forwards',
+        'waveform': 'waveform 2s infinite ease-out',
       },
     },
   },

@@ -40,7 +40,9 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
       };
       
       recognition.onend = () => {
-        setIsListening(false);
+        if (isListening) {
+           setIsListening(false);
+        }
       };
 
       recognition.onerror = (event) => {
@@ -50,7 +52,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
 
       recognitionRef.current = recognition;
     }
-  }, []);
+  }, [isListening]);
 
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
