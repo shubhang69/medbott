@@ -14,7 +14,13 @@ import { RecordingOverlay } from '@/components/recording-overlay';
 import { transcribeAudio } from '@/ai/flows/transcribe-audio';
 
 export function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'initial-message',
+      sender: 'bot',
+      text: questions[0].text,
+    },
+  ]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [isBotLoading, setIsBotLoading] = useState(false);
@@ -27,18 +33,17 @@ export function ChatInterface() {
   }, []);
 
   const handleRestart = useCallback(() => {
-    setMessages([]);
+    setMessages([
+      {
+        id: 'initial-message',
+        sender: 'bot',
+        text: questions[0].text,
+      },
+    ]);
     setCurrentQuestionIndex(0);
     setAnswers({});
     setIsBotLoading(false);
-    if (messages.length === 0) {
-      addMessage({ sender: 'bot', text: questions[0].text });
-    }
-  }, [addMessage, messages.length]);
-
-  useEffect(() => {
-    handleRestart();
-  }, [handleRestart]);
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
