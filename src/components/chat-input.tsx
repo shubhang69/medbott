@@ -13,6 +13,7 @@ interface ChatInputProps {
   onImageSubmit?: (file: File) => void;
   isLoading: boolean;
   audioRecorder: UseAudioRecorder;
+  handleDownloadSubmit: () => void;
 }
 
 export function ChatInput({
@@ -21,6 +22,7 @@ export function ChatInput({
   onImageSubmit,
   isLoading,
   audioRecorder,
+  handleDownloadSubmit,
 }: ChatInputProps) {
   const [inputValue, setInputValue] = useState("");
   const { startRecording, stopRecording, isRecording } = audioRecorder;
@@ -131,7 +133,6 @@ export function ChatInput({
         <ImageIcon className="h-6 w-6" />
         <span className="sr-only">Upload image</span>
       </Button>
-
       <Button
         type="button"
         size="icon"

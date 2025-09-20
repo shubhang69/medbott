@@ -20,6 +20,12 @@ import {
   handleAudioSubmit,
 } from "@/logic/chat-interface-logic";
 import { Dialog } from "@/components/ui/dialog";
+import {
+  ANALYZE_IMAGE_API,
+  CASE_CREATION_API,
+  DOWNLOAD_REPORT_API,
+} from "@/helpers/consts";
+import { X } from "lucide-react";
 
 interface ChatInterfaceProps {
   conversationId: string;
@@ -47,6 +53,7 @@ export function ChatInterface({
   const [isBotLoading, setIsBotLoading] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isCaseLoading, setIsCaseLoading] = useState(false);
+  const [imageDownloadResponse, setImageDownloadResponse] = useState(null);
 
   const { toast } = useToast();
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -78,7 +85,7 @@ export function ChatInterface({
 
   // Helper function to send case to ngrok backend with simplified headers
   async function sendCaseToNgrok(symptomDescription: string) {
-    const url = "https://5796209a4fff.ngrok-free.app/compose_case";
+    const url = CASE_CREATION_API;
     const payload = { symptomDescription };
     const headers = {
       "Content-Type": "application/json",
@@ -110,21 +117,19 @@ export function ChatInterface({
 
   // Add image upload handler and API call for diagnosis
   async function sendImageForDiagnosis(base64Image: string) {
-    const url = "https://5796209a4fff.ngrok-free.app/diagnose_image";
-    const payload = { image: base64Image };
-    const headers = {
-      "Content-Type": "application/json",
-      "ngrok-skip-browser-warning": "true",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers":
-        "Content-Type, ngrok-skip-browser-warning",
-    };
+    const url = ANALYZE_IMAGE_API;
+    const formData = new FormData();
+    formData.append("image", base64Image);
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers,
-        body: JSON.stringify(payload),
+        body: formData,
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "ngrok-skip-browser-warning",
+        },
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -163,6 +168,7 @@ export function ChatInterface({
         addMessage({ sender: "user", text: transcription });
         // Call backend API with transcribed text
         const backendResponse = await sendCaseToNgrok(transcription);
+        setDownloadResponse(backendResponse);
         // Map the response to a detailed UI message
         const detailedMessage = (
           <div className="space-y-4">
@@ -214,7 +220,7 @@ export function ChatInterface({
               onClick={() => handleDownload(backendResponse)}
               variant="secondary"
             >
-              Download Report
+              Generate Report Link
             </Button>
           </div>
         );
@@ -403,11 +409,12 @@ export function ChatInterface({
       setIsCaseLoading(true);
       try {
         const backendResponse = await sendImageForDiagnosis(base64);
+
         // Map the response to a detailed UI message
         const detailedMessage = (
           <div className="space-y-4">
             <p className="font-bold">Image Diagnosis Result:</p>
-            <p>{backendResponse.result}</p>
+            <p>{backendResponse.analysis}</p>
             {backendResponse.details && (
               <div>
                 <p className="font-bold">Details:</p>
@@ -416,14 +423,7 @@ export function ChatInterface({
                 </pre>
               </div>
             )}
-            <div className="mt-4 flex justify-end">
-              <Button
-                onClick={() => handleDownload(backendResponse)}
-                variant="secondary"
-              >
-                Download Report
-              </Button>
-            </div>
+            <div className="mt-4 flex justify-end"></div>
           </div>
         );
         addMessage({ sender: "bot", content: detailedMessage });
@@ -465,15 +465,13 @@ export function ChatInterface({
   };
 
   const handleDownloadSubmit = async () => {
-    setDownloadLoading(true);
     setDownloadError("");
-    setDownloadSuccess(false);
+
     try {
-      const url = "https://5796209a4fff.ngrok-free.app/download_report";
-      const payload = {
-        ...lastBackendResponse,
-        medicines: medicinesInput,
-      };
+      const url = DOWNLOAD_REPORT_API;
+      const payload = downloadResponse
+        ? downloadResponse
+        : imageDownloadResponse;
       const headers = {
         "Content-Type": "application/json",
         "ngrok-skip-browser-warning": "true",
@@ -583,11 +581,21 @@ export function ChatInterface({
             onClick={() => handleDownload(backendResponse)}
             variant="secondary"
           >
-            Download Report
+            Generate Report
           </Button>
         </div>
       </div>
     );
+  }
+
+  // Add helper to download image from URL
+  function downloadImageFromUrl(url: string, filename: string = "report.png") {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   return (
@@ -621,6 +629,7 @@ export function ChatInterface({
                 onImageSubmit={handleImageUpload}
                 isLoading={isBotLoading || isCaseLoading}
                 audioRecorder={audioRecorder}
+                handleDownloadSubmit={handleDownloadSubmit}
               />
             )}
             {currentQuestion.type === "final" && (
@@ -634,29 +643,44 @@ export function ChatInterface({
       {(isBotLoading || isCaseLoading) && <LoaderOverlay />}
       {showDownloadDialog && (
         <Dialog open={showDownloadDialog} onOpenChange={setShowDownloadDialog}>
-          <div className="p-6">
-            <h3 className="text-lg font-semibold mb-2">
-              Enter Medicines (if any)
-            </h3>
-            <input
-              type="text"
-              value={medicinesInput}
-              onChange={(e) => setMedicinesInput(e.target.value)}
-              placeholder="e.g. Paracetamol, Ibuprofen"
-              className="w-full mb-4 p-2 border rounded"
-            />
-            <Button onClick={handleDownloadSubmit} disabled={downloadLoading}>
-              {downloadLoading ? "Downloading..." : "Download Report"}
+          <div className="p-6 relative">
+            <button
+              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowDownloadDialog(false)}
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <Button
+              onClick={handleDownloadSubmit}
+              disabled={downloadLoading}
+              style={{ alignItems: "center" }}
+            >
+              {downloadLoading ? "Downloading..." : "Generate Report"}
             </Button>
             {downloadError && (
               <p className="text-red-500 mt-2">{downloadError}</p>
             )}
             {downloadSuccess && downloadResponse && (
               <div className="mt-4">
-                <p className="text-green-600">
-                  Report downloaded successfully!
-                </p>
+                <p className="text-green-600">Report generated successfully!</p>
                 {/* You can add logic to show/download the file here */}
+                {downloadResponse.image_url && (
+                  <div className="mt-4 flex flex-col items-center">
+                    <p className="text-green-600 mb-2">
+                      Report downloaded successfully!
+                    </p>
+                    <Button
+                      onClick={() =>
+                        downloadImageFromUrl(downloadResponse.image_url)
+                      }
+                      variant="outline"
+                    >
+                      Download Prescription Image
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
