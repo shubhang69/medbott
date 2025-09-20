@@ -31,14 +31,8 @@ export function useChatHistory() {
   };
   
   const getConversation = useCallback((id: string): Conversation | undefined => {
-    // This needs to read from the state variable which is updated from local storage
-    const storedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
-    if (storedHistory) {
-        const parsedHistory: Conversation[] = JSON.parse(storedHistory);
-        return parsedHistory.find(c => c.id === id);
-    }
-    return undefined;
-  }, []);
+    return conversations.find(c => c.id === id);
+  }, [conversations]);
 
 
   const saveConversation = useCallback((id: string, messages: Message[], answers: Answers) => {
@@ -58,8 +52,10 @@ export function useChatHistory() {
             newConversations[existingConversationIndex] = updatedConversation;
         } else {
             // Create new conversation
-            const userMessage = messages.find(m => m.sender === 'user' && typeof m.text === 'string');
-            const title = (userMessage?.text as string)?.substring(0, 40) + '...' || 'New Case';
+            const userMessage = messages.find(m => m.sender === 'user' && typeof m.text === 'string' && m.text.trim() !== '');
+            const title = userMessage ? 
+              ((userMessage.text as string).substring(0, 40) + '...') : 
+              'New Case';
 
             const newConversation: Conversation = {
                 id,

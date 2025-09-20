@@ -1,7 +1,7 @@
 export interface Message {
   id: string;
   sender: 'user' | 'bot' | 'system' | 'ui';
-  text?: string | React.ReactNode;
+  text?: string;
   content?: React.ReactNode;
   isLoading?: boolean;
 }

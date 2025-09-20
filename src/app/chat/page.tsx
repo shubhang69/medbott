@@ -25,7 +25,8 @@ export default function ChatPage() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
 
   const handleStartNewChat = () => {
-    setSelectedConversationId(Date.now().toString());
+    // Use a new timestamp for the key to ensure a fresh component instance
+    setSelectedConversationId(`new_${Date.now()}`);
   };
   
   const handleDelete = (id: string) => {
@@ -39,7 +40,7 @@ export default function ChatPage() {
     return (
       <main className="h-screen w-full flex bg-background">
         <ChatInterface
-          key={selectedConversationId}
+          key={selectedConversationId} // Re-mounts the component when ID changes
           conversationId={selectedConversationId}
           onNewChat={() => setSelectedConversationId(null)}
         />

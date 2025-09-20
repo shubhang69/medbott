@@ -24,78 +24,77 @@ interface ChatInterfaceProps {
 export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps) {
   const { getConversation, saveConversation } = useChatHistory();
 
-  const getInitialState = () => {
-    const existingConversation = getConversation(conversationId);
-    if (existingConversation && existingConversation.messages.length > 0) {
-      const lastBotMessage = existingConversation.messages
-        .slice()
-        .reverse()
-        .find((m) => m.sender === 'bot' && !m.isLoading);
-      const question = questions.find((q) => q.text === lastBotMessage?.text);
-      const questionIndex = question ? questions.indexOf(question) : 0;
-      return {
-        messages: existingConversation.messages,
-        questionIndex: questionIndex,
-        answers: existingConversation.answers || {},
-      };
+  // Initialize state from a function to avoid re-running on every render
+  const getInitialState = useCallback(() => {
+    if (!conversationId.startsWith('new_')) {
+      const existingConversation = getConversation(conversationId);
+      if (existingConversation && existingConversation.messages.length > 0) {
+        
+        const lastBotMessage = existingConversation.messages
+            .slice()
+            .reverse()
+            .find((m) => m.sender === 'bot');
+
+        // Find the index of the last question asked
+        const lastQuestion = questions.find(q => q.text === lastBotMessage?.text);
+        const questionIndex = lastQuestion ? questions.indexOf(lastQuestion) : 0;
+        
+        return {
+          messages: existingConversation.messages,
+          questionIndex: questionIndex,
+          answers: existingConversation.answers || {},
+        };
+      }
     }
+    // Default state for a new chat
     return {
       messages: [{ id: 'initial-message', sender: 'bot', text: questions[0].text }],
       questionIndex: 0,
       answers: {},
     };
-  };
+  }, [conversationId, getConversation]);
 
-  const [messages, setMessages] = useState<Message[]>(() => getInitialState().messages);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(() => getInitialState().questionIndex);
-  const [answers, setAnswers] = useState<Answers>(() => getInitialState().answers);
+  const [messages, setMessages] = useState<Message[]>(getInitialState().messages);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(getInitialState().questionIndex);
+  const [answers, setAnswers] = useState<Answers>(getInitialState().answers);
   const [isBotLoading, setIsBotLoading] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+
   const { toast } = useToast();
   const bottomRef = useRef<HTMLDivElement>(null);
   const audioRecorder = useAudioRecorder();
   
+  // Effect for saving conversation to history
   useEffect(() => {
-    // Only save if there are more than the initial message, or if it's a pre-existing chat
-    const existingConversation = getConversation(conversationId);
-    if (messages.length > 1 || existingConversation) {
+    // Only save if there's more than the initial bot message
+    if (messages.length > 1) {
       saveConversation(conversationId, messages, answers);
     }
-  }, [conversationId, messages, answers, saveConversation, getConversation]);
+  }, [messages, answers, conversationId, saveConversation]);
   
 
   const addMessage = useCallback((message: Omit<Message, 'id'>) => {
     setMessages((prev) => [...prev, { id: Date.now().toString() + Math.random(), ...message }]);
   }, []);
 
-  const handleRestart = useCallback(() => {
-    onNewChat();
-  }, [onNewChat]);
-  
-
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const handleAudioSubmit = useCallback(async (audioDataUri: string, fileName?: string) => {
-    const content = fileName 
-      ? `Uploaded: ${fileName}` 
-      : <audio controls src={audioDataUri} className="w-full" />;
-    
-    addMessage({ sender: 'user', content: content });
+    addMessage({ sender: 'ui', content: fileName ? `Uploaded: ${fileName}` : <audio controls src={audioDataUri} className="w-full" /> });
     setIsTranscribing(true);
   
     try {
       const match = audioDataUri.match(/^data:(.*);base64,(.*)$/);
-      if (!match) {
-        throw new Error('Invalid audio data URI format.');
-      }
-      const mimeType = match[1];
-      const audioData = match[2];
+      if (!match) throw new Error('Invalid audio data URI format.');
+      
+      const [_, mimeType, audioData] = match;
       
       const { transcription } = await transcribeAudio({ audioData, mimeType, language: 'en' });
       
-      setMessages(prev => prev.filter(m => typeof m.content === 'object'));
+      // Remove the UI placeholder for the audio element/file name
+      setMessages(prev => prev.filter(m => m.sender !== 'ui'));
 
       if (transcription && transcription.trim()) {
         handleSubmitInitial(transcription);
@@ -106,27 +105,22 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
       console.error(error);
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
       toast({ title: 'Error', description: `Could not transcribe audio. ${errorMessage}`, variant: 'destructive' });
-      setMessages(prev => prev.filter(m => typeof m.content === 'object'));
+      // Clean up UI placeholders on error
+      setMessages(prev => prev.filter(m => m.sender !== 'ui'));
     } finally {
       setIsTranscribing(false);
     }
   }, [addMessage, toast]);
   
   const handleFileUpload = (file: File) => {
-    if (file) {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = () => {
-        const audioDataUri = reader.result as string;
-        handleAudioSubmit(audioDataUri, file.name);
-      };
-      reader.onerror = (error) => {
-        console.error("Error reading file:", error);
-        toast({ title: "Error", description: "Could not read the uploaded file.", variant: "destructive"});
-      };
-    }
-  }
-
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => handleAudioSubmit(reader.result as string, file.name);
+    reader.onerror = (error) => {
+      console.error("Error reading file:", error);
+      toast({ title: "Error", description: "Could not read the uploaded file.", variant: "destructive"});
+    };
+  };
 
   useEffect(() => {
     if (audioRecorder.audioDataUri && !audioRecorder.isRecording) {
@@ -221,7 +215,7 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
             {currentQuestion.type === 'initial' && <ChatInput onSubmit={handleSubmitInitial} onFileSubmit={handleFileUpload} isLoading={isBotLoading} audioRecorder={audioRecorder} />}
             {currentQuestion.type === 'final' && (
               <div className="text-center">
-                <Button onClick={handleRestart}>Start New Case</Button>
+                <Button onClick={onNewChat}>Start New Case</Button>
               </div>
             )}
           </div>

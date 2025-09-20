@@ -3,7 +3,8 @@
  * @fileOverview A Genkit flow for transcribing audio data using Groq's Whisper API.
  *
  * This flow takes base64-encoded audio data, saves it to a temporary file, streams it to Groq for transcription,
- * and returns the transcribed text. Restricted to English ('en'), Hindi ('hi'), and Marathi ('mr').
+ * and returns the transcribed text. Supports English ('en'), Hindi ('hi'), and Marathi ('mr'), with optional language
+ * specification for auto-detection in mixed-language audio.
  *
  * - transcribeAudio - A function to trigger the audio transcription flow.
  * - TranscribeAudioInput - The input type for the transcribeAudio function.
@@ -27,7 +28,7 @@ const TranscribeAudioInputSchema = z.object({
       'The base64-encoded audio data. The data URI prefix (e.g., "data:audio/webm;base64,") should be removed.'
     ),
   mimeType: z.string().describe('The MIME type of the audio data (e.g., "audio/webm").'),
-  language: z.enum(allowedLanguages).describe('Language code for transcription (en: English, hi: Hindi, mr: Marathi).'),
+  language: z.enum(allowedLanguages).optional().describe('Optional language code for transcription (en: English, hi: Hindi, mr: Marathi). If omitted, auto-detects for mixed languages.'),
 });
 export type TranscribeAudioInput = z.infer<typeof TranscribeAudioInputSchema>;
 
@@ -73,11 +74,16 @@ const transcribeAudioFlow = ai.defineFlow(
       // Create a read stream from the temporary file
       const fileStream = fs.createReadStream(tempFilePath);
 
-      const transcription = await groq.audio.transcriptions.create({
+      // Prepare API options, omitting language if not provided for auto-detection
+      const apiOptions: any = {
         file: fileStream,
         model: 'whisper-large-v3-turbo',
-        language: input.language,
-      });
+      };
+      if (input.language) {
+        apiOptions.language = input.language;
+      }
+
+      const transcription = await groq.audio.transcriptions.create(apiOptions);
 
       if (!transcription.text) {
         throw new Error('Transcription failed: No text returned from API.');
@@ -91,12 +97,12 @@ const transcribeAudioFlow = ai.defineFlow(
       }
       throw new Error('Failed to transcribe audio. Please check the input and try again.');
     } finally {
-        // Clean up the temporary file
-        try {
-            await fs.promises.unlink(tempFilePath);
-        } catch (cleanupError) {
-            console.error('Failed to clean up temporary audio file:', cleanupError);
-        }
+      // Clean up the temporary file
+      try {
+        await fs.promises.unlink(tempFilePath);
+      } catch (cleanupError) {
+        console.error('Failed to clean up temporary audio file:', cleanupError);
+      }
     }
   }
 );
