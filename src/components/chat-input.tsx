@@ -100,7 +100,7 @@ export function ChatInput({ onSubmit, onFileSubmit, isLoading, audioRecorder }: 
         onClick={toggleRecording}
         className={cn(
           "relative h-14 w-14 flex-shrink-0 rounded-full transition-all duration-300",
-          isRecording ? 'bg-destructive scale-110' : 'bg-primary'
+          isRecording ? 'bg-destructive scale-110 animate-glow' : 'bg-primary'
         )}
         aria-label={isRecording ? 'Stop recording' : 'Start recording'}
         disabled={isLoading}
