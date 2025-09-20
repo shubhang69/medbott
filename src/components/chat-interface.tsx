@@ -32,7 +32,7 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
 
   useEffect(() => {
     const existingConversation = getConversation(conversationId);
-    if (existingConversation) {
+    if (existingConversation && existingConversation.messages.length > 0) {
       setMessages(existingConversation.messages);
       const lastBotMessage = existingConversation.messages.slice().reverse().find(m => m.sender === 'bot' && !m.isLoading);
       const question = questions.find(q => q.text === lastBotMessage?.text);
@@ -49,7 +49,8 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
   }, [conversationId, getConversation]);
 
   useEffect(() => {
-    if (messages.length > 0) {
+    // Only save if there are more than the initial message
+    if (messages.length > 1) {
       saveConversation(conversationId, messages);
     }
   }, [conversationId, messages, saveConversation]);
