@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
-type AudioRecorderHook = {
+export type UseAudioRecorder = {
   isRecording: boolean;
   startRecording: () => void;
-  stopRecording: () => Promise<void>;
+  stopRecording: () => void;
   audioDataUri: string | null;
 };
 
-export function useAudioRecorder(): AudioRecorderHook {
+export function useAudioRecorder(): UseAudioRecorder {
   const [isRecording, setIsRecording] = useState(false);
   const [audioDataUri, setAudioDataUri] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -19,11 +19,19 @@ export function useAudioRecorder(): AudioRecorderHook {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorderRef.current = new MediaRecorder(stream);
+        // Prevent multiple recorder instances
+        if (mediaRecorderRef.current) {
+            mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+        }
+
+        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
         audioChunksRef.current = [];
+        setAudioDataUri(null); // Clear previous recording
 
         mediaRecorderRef.current.ondataavailable = (event) => {
-          audioChunksRef.current.push(event.data);
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
         };
 
         mediaRecorderRef.current.onstop = () => {
@@ -36,27 +44,35 @@ export function useAudioRecorder(): AudioRecorderHook {
           
           // Stop all tracks to release the microphone
           stream.getTracks().forEach(track => track.stop());
+          setIsRecording(false);
         };
 
         mediaRecorderRef.current.start();
         setIsRecording(true);
       } catch (error) {
         console.error('Error accessing microphone:', error);
+        alert('Could not access the microphone. Please check your browser permissions.');
       }
+    } else {
+        alert('Audio recording is not supported by your browser.');
     }
   };
 
-  const stopRecording = async (): Promise<void> => {
-     return new Promise((resolve) => {
+  const stopRecording = () => {
       if (mediaRecorderRef.current && isRecording) {
-        mediaRecorderRef.current.addEventListener('stop', () => resolve(), { once: true });
         mediaRecorderRef.current.stop();
-        setIsRecording(false);
-      } else {
-        resolve();
+        // The onstop event handler will set isRecording to false
       }
-    });
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
 
   return {
     isRecording,

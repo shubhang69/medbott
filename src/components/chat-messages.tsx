@@ -18,28 +18,31 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
           key={message.id}
           className={cn(
             'flex items-start gap-3',
-            message.sender === 'user' && 'justify-end'
+            message.sender === 'user' && 'flex-row-reverse'
           )}
         >
           {message.sender === 'bot' && (
-            <Avatar className="w-8 h-8 shrink-0 bg-primary/20 text-primary">
+            <Avatar className="h-8 w-8 shrink-0 border-2 border-primary/50 bg-primary/20 text-primary">
               <AvatarFallback className="bg-transparent">
-                <Stethoscope size={20} />
+                <Stethoscope size={18} />
               </AvatarFallback>
             </Avatar>
           )}
 
           <div
             className={cn(
-              'max-w-[80%] rounded-2xl p-3 px-4 text-sm',
-              message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary'
+              'max-w-[80%] rounded-2xl px-4 py-3 text-sm',
+              message.sender === 'user'
+                ? 'rounded-br-none bg-primary text-primary-foreground'
+                : 'rounded-bl-none bg-secondary',
+              'animate-fade-in-scale'
             )}
           >
             {message.isLoading ? (
-              <div className="flex items-center space-x-2">
-                <Skeleton className="w-3 h-3 rounded-full animate-bounce" />
-                <Skeleton className="w-3 h-3 rounded-full animate-bounce" style={{animationDelay: '0.2s'}} />
-                <Skeleton className="w-3 h-3 rounded-full animate-bounce" style={{animationDelay: '0.4s'}} />
+              <div className="flex items-center space-x-2 p-1">
+                <Skeleton className="h-2 w-2 rounded-full animate-bounce" />
+                <Skeleton className="h-2 w-2 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                <Skeleton className="h-2 w-2 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
               </div>
             ) : (
               message.text || message.content
@@ -47,9 +50,9 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
           </div>
 
           {message.sender === 'user' && (
-            <Avatar className="w-8 h-8 shrink-0">
+            <Avatar className="h-8 w-8 shrink-0">
               <AvatarFallback>
-                <User size={20} />
+                <User size={18} />
               </AvatarFallback>
             </Avatar>
           )}
