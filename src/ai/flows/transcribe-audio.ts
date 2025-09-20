@@ -1,9 +1,9 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for transcribing audio data.
+ * @fileOverview A Genkit flow for transcribing audio data using Groq's Whisper API.
  *
- * This flow takes an audio data URI and uses a generative model
- * to convert the spoken words into text.
+ * This flow takes an audio data URI, sends it to Groq for transcription,
+ * and returns the transcribed text.
  *
  * - transcribeAudio - A function to trigger the audio transcription flow.
  * - TranscribeAudioInput - The input type for the transcribeAudio function.
@@ -12,6 +12,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import Groq from 'groq-sdk';
 
 const TranscribeAudioInputSchema = z.object({
   audioDataUri: z
@@ -42,16 +43,31 @@ const transcribeAudioFlow = ai.defineFlow(
     outputSchema: TranscribeAudioOutputSchema,
   },
   async input => {
-    const {output} = await ai.generate({
-      prompt: [
-        {
-          text: 'Transcribe the following audio. The user is describing medical symptoms.',
-        },
-        {media: {url: input.audioDataUri}},
-      ],
-      model: 'googleai/gemini-2.5-flash',
+    if (!process.env.GROQ_API_KEY) {
+      throw new Error(
+        'GROQ_API_KEY is not set in the environment variables.'
+      );
+    }
+
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+    // Extract content type and base64 data from data URI
+    const match = input.audioDataUri.match(/^data:(audio\/\w+);base64,(.*)$/);
+    if (!match) {
+      throw new Error('Invalid audio data URI format.');
+    }
+    
+    const base64Data = match[2];
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Groq SDK's `toFile` expects a Buffer-like object.
+    const file = await Groq.toFile(buffer, 'audio.webm');
+
+    const transcription = await groq.audio.transcriptions.create({
+      file: file,
+      model: 'whisper-large-v3',
     });
 
-    return {transcription: output?.text || ''};
+    return { transcription: transcription.text };
   }
 );

@@ -33,17 +33,19 @@ export function ChatInterface() {
   }, []);
 
   const handleRestart = useCallback(() => {
-    setMessages([
-      {
-        id: 'initial-message',
-        sender: 'bot',
-        text: questions[0].text,
-      },
-    ]);
+    if (messages.length === 0) {
+      setMessages([
+        {
+          id: 'initial-message',
+          sender: 'bot',
+          text: questions[0].text,
+        },
+      ]);
+    }
     setCurrentQuestionIndex(0);
     setAnswers({});
     setIsBotLoading(false);
-  }, []);
+  }, [messages.length]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -58,6 +60,8 @@ export function ChatInterface() {
       const { transcription } = await transcribeAudio({ audioDataUri });
       
       setMessages(prev => prev.filter(m => m.id !== 'transcribing-loader'));
+      // Remove the audio content message
+      setMessages(prev => prev.filter(m => typeof m.content !== 'object'));
 
       if (transcription) {
         handleSubmitInitial(transcription);
@@ -66,7 +70,8 @@ export function ChatInterface() {
       }
     } catch (error) {
       console.error(error);
-      toast({ title: 'Error', description: 'Could not transcribe audio. Please try again or type your message.', variant: 'destructive' });
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+      toast({ title: 'Error', description: `Could not transcribe audio. ${errorMessage}`, variant: 'destructive' });
       setMessages(prev => prev.filter(m => !m.isLoading));
       setIsBotLoading(false);
     }
