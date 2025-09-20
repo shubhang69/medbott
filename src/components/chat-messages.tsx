@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { Message } from '@/lib/types';
-import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Stethoscope, User } from 'lucide-react';
-import { Loader } from './ui/loader';
+import { Message } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Stethoscope, User } from "lucide-react";
+import { Loader } from "./ui/loader";
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -17,35 +17,29 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
         <div
           key={message.id}
           className={cn(
-            'flex items-start gap-3',
-            message.sender === 'user' && 'flex-row-reverse'
+            "flex items-start gap-3",
+            message.sender === "user" && "flex-row-reverse"
           )}
         >
-          {message.sender === 'bot' && (
+          {message.sender === "bot" && (
             <Avatar className="h-8 w-8 shrink-0 border-2 border-primary/50 bg-primary/20 text-primary">
               <AvatarFallback className="bg-transparent">
                 <Stethoscope size={18} />
               </AvatarFallback>
             </Avatar>
           )}
-
           <div
             className={cn(
-              'max-w-[80%] rounded-2xl px-4 py-3 text-sm',
-              message.sender === 'user'
-                ? 'rounded-br-none bg-primary text-primary-foreground'
-                : 'rounded-bl-none bg-secondary',
-              'animate-fade-in-scale'
+              "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
+              message.sender === "user"
+                ? "rounded-br-none bg-primary text-primary-foreground"
+                : "rounded-bl-none bg-secondary",
+              "animate-fade-in-scale"
             )}
           >
-            {message.isLoading ? (
-              <Loader />
-            ) : (
-              message.text || message.content
-            )}
+            {message.isLoading ? <Loader /> : message.text || message.content}
           </div>
-
-          {message.sender === 'user' && (
+          {message.sender === "user" && (
             <Avatar className="h-8 w-8 shrink-0">
               <AvatarFallback>
                 <User size={18} />
