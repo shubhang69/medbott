@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { Soundwave } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -23,7 +23,7 @@ export default function Home() {
         <div style={{ animationDelay: '1.3s' }} className="w-full p-4 opacity-0 animate-fade-in">
           <Button size="lg" className="w-full text-lg h-16 rounded-2xl bg-primary/90 hover:bg-primary" asChild>
             <Link href="/chat">
-              <Soundwave size={28} />
+              <MessageCircle size={28} />
             </Link>
           </Button>
         </div>
