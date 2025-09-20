@@ -38,6 +38,9 @@ export default function ChatPage() {
             </div>
           </SheetTrigger>
           <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl border-t-4 border-primary bg-background">
+              <SheetHeader>
+                <SheetTitle className="sr-only">Chat Interface</SheetTitle>
+              </SheetHeader>
               <ChatInterface />
           </SheetContent>
         </Sheet>
