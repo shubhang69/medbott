@@ -26,7 +26,7 @@ export function PainScale({ onSelect }: PainScaleProps) {
     <div className="w-full max-w-sm mx-auto p-4 space-y-6">
       <div className="relative">
         <Slider
-          defaultValue={[value]}
+          value={[value]}
           min={1}
           max={10}
           step={1}

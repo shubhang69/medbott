@@ -24,6 +24,9 @@ export function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() && !isLoading) {
+      if (isListening) {
+        stopListening();
+      }
       onSubmit(inputValue);
       setInputValue('');
     }
@@ -45,18 +48,19 @@ export function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
           variant="ghost"
           size="icon"
           onClick={toggleListening}
-          className={isListening ? 'text-primary animate-pulse' : ''}
+          className="relative"
           aria-label={isListening ? 'Stop listening' : 'Start listening'}
         >
-          {isListening ? <Square /> : <Mic />}
+          {isListening && <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse" />}
+          {isListening ? <Square className="text-primary" /> : <Mic />}
         </Button>
       )}
       <Input
         type="text"
-        placeholder="Type here..."
+        placeholder={isListening ? 'Listening...' : "Type here..."}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
-        disabled={isLoading || isListening}
+        disabled={isLoading}
         className="flex-1"
       />
       <Button type="submit" size="icon" disabled={isLoading || !inputValue.trim()} aria-label="Send message">

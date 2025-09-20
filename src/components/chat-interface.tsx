@@ -23,7 +23,7 @@ export function ChatInterface() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const addMessage = useCallback((message: Omit<Message, 'id'>) => {
-    setMessages((prev) => [...prev, { id: Date.now().toString(), ...message }]);
+    setMessages((prev) => [...prev, { id: Date.now().toString() + Math.random(), ...message }]);
   }, []);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function ChatInterface() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const advanceQuestion = useCallback(() => {
+  const advanceQuestion = useCallback((newAnswers?: Answers) => {
     const nextIndex = currentQuestionIndex + 1;
     if (nextIndex < questions.length) {
       setCurrentQuestionIndex(nextIndex);
@@ -42,32 +42,47 @@ export function ChatInterface() {
       const message: Omit<Message, 'id'> = { sender: 'bot' };
       
       if(nextQuestion.type === 'summary') {
+        const finalAnswers = { ...answers, ...newAnswers };
         message.content = (
           <Card className="bg-secondary border-primary/50">
             <CardHeader>
               <CardTitle>Symptom Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p><strong>Concern:</strong> {answers.understanding}</p>
-              <p><strong>Location:</strong> {answers.location}</p>
-              <p><strong>Pain Level:</strong> {answers['pain-scale']}/10</p>
-              <p><strong>Duration:</strong> {answers.duration}</p>
+              <p><strong>Concern:</strong> {finalAnswers.understanding}</p>
+              <p><strong>Location:</strong> {finalAnswers.location}</p>
+              <p><strong>Pain Level:</strong> {finalAnswers['pain-scale']}/10</p>
+              <p><strong>Duration:</strong> {finalAnswers.duration}</p>
             </CardContent>
           </Card>
         );
+         setTimeout(() => addMessage(message), 500);
+         // Advance again to the final message
+         setTimeout(() => {
+            const finalQuestion = questions[nextIndex + 1];
+            if (finalQuestion) {
+              setCurrentQuestionIndex(nextIndex + 1);
+              addMessage({sender: 'bot', text: finalQuestion.text});
+            }
+         }, 1000);
+
       } else {
         message.text = nextQuestion.text;
+        setTimeout(() => addMessage(message), 500);
       }
-
-      setTimeout(() => addMessage(message), 500);
 
     }
   }, [currentQuestionIndex, addMessage, answers]);
   
   const handleAnswer = useCallback((key: string, value: any) => {
-    setAnswers(prev => ({ ...prev, [key]: value }));
-    advanceQuestion();
-  }, [advanceQuestion]);
+    const newAnswers = { ...answers, [key]: value };
+    setAnswers(newAnswers);
+    if(key === 'duration') { // last question before summary
+      advanceQuestion(newAnswers);
+    } else {
+      advanceQuestion();
+    }
+  }, [advanceQuestion, answers]);
 
   const handleSubmitInitial = async (symptomDescription: string) => {
     addMessage({ sender: 'user', text: symptomDescription });
@@ -76,14 +91,14 @@ export function ChatInterface() {
 
     try {
       const { understoodSymptoms } = await understandUserSymptoms({ symptomDescription });
-      setMessages(prev => prev.slice(0, -1)); // Remove loading message
+      setMessages(prev => prev.filter(m => !m.isLoading)); // Remove loading message
       setAnswers(prev => ({ ...prev, initial: symptomDescription, understanding: understoodSymptoms }));
       addMessage({ sender: 'bot', text: `I see, you're experiencing: ${understoodSymptoms}.` });
       advanceQuestion();
     } catch (error) {
       console.error(error);
       toast({ title: 'Error', description: 'Could not understand symptoms. Please try again.', variant: 'destructive' });
-      setMessages(prev => prev.slice(0, -1));
+      setMessages(prev => prev.filter(m => !m.isLoading));
     } finally {
       setIsBotLoading(false);
     }
@@ -94,7 +109,7 @@ export function ChatInterface() {
     setCurrentQuestionIndex(0);
     setAnswers({});
     setIsBotLoading(false);
-    addMessage({ sender: 'bot', text: questions[0].text });
+    setTimeout(() => addMessage({ sender: 'bot', text: questions[0].text }), 100);
   };
 
   const currentQuestion = questions[currentQuestionIndex];
