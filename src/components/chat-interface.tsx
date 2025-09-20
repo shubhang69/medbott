@@ -26,9 +26,17 @@ export function ChatInterface() {
     setMessages((prev) => [...prev, { id: Date.now().toString() + Math.random(), ...message }]);
   }, []);
 
+  const handleRestart = useCallback(() => {
+    setMessages([]);
+    setCurrentQuestionIndex(0);
+    setAnswers({});
+    setIsBotLoading(false);
+    setTimeout(() => addMessage({ sender: 'bot', text: questions[0].text }), 200);
+  }, [addMessage]);
+
   useEffect(() => {
     handleRestart();
-  }, []);
+  }, [handleRestart]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -125,14 +133,6 @@ export function ChatInterface() {
     } finally {
       setIsBotLoading(false);
     }
-  };
-
-  const handleRestart = () => {
-    setMessages([]);
-    setCurrentQuestionIndex(0);
-    setAnswers({});
-    setIsBotLoading(false);
-    setTimeout(() => addMessage({ sender: 'bot', text: questions[0].text }), 200);
   };
 
   const currentQuestion = questions[currentQuestionIndex];
