@@ -11,6 +11,7 @@ import { ChatInput } from '@/components/chat-input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RecordingOverlay } from '@/components/recording-overlay';
+import { TranscriptionOverlay } from '@/components/transcription-overlay';
 import { transcribeAudio } from '@/ai/flows/transcribe-audio';
 import { useChatHistory } from '@/hooks/use-chat-history';
 import { ArrowLeft } from 'lucide-react';
@@ -22,10 +23,15 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps) {
   const { getConversation, saveConversation } = useChatHistory();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([{
+      id: 'initial-message',
+      sender: 'bot',
+      text: questions[0].text,
+  }]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [isBotLoading, setIsBotLoading] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const { toast } = useToast();
   const bottomRef = useRef<HTMLDivElement>(null);
   const audioRecorder = useAudioRecorder();
@@ -40,11 +46,11 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
         setCurrentQuestionIndex(questions.indexOf(question));
       }
     } else {
-      setMessages([{
-        id: 'initial-message',
-        sender: 'bot',
-        text: questions[0].text,
-      }]);
+        setMessages([{
+            id: 'initial-message',
+            sender: 'bot',
+            text: questions[0].text,
+        }]);
     }
   }, [conversationId, getConversation]);
 
@@ -75,9 +81,7 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
       : <audio controls src={audioDataUri} className="w-full" />;
     
     addMessage({ sender: 'user', content: content });
-    setIsBotLoading(true);
-    const transcribingMessageId = 'transcribing-loader';
-    addMessage({ sender: 'bot', text: 'Transcribing audio...', id: transcribingMessageId });
+    setIsTranscribing(true);
   
     try {
       // Extract base64 data and mimeType from data URI
@@ -90,21 +94,20 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
       
       const { transcription } = await transcribeAudio({ audioData, mimeType, language: 'en' });
       
-      setMessages(prev => prev.filter(m => m.id !== transcribingMessageId));
       setMessages(prev => prev.filter(m => typeof m.content === 'object')); // Remove the audio player/upload message
 
       if (transcription && transcription.trim()) {
         handleSubmitInitial(transcription);
       } else {
          addMessage({ sender: 'bot', text: 'Transcription was empty. Please try again.'});
-         setIsBotLoading(false);
       }
     } catch (error) {
       console.error(error);
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
       toast({ title: 'Error', description: `Could not transcribe audio. ${errorMessage}`, variant: 'destructive' });
-      setMessages(prev => prev.filter(m => m.id !== transcribingMessageId));
-      setIsBotLoading(false);
+      setMessages(prev => prev.filter(m => typeof m.content === 'object'));
+    } finally {
+      setIsTranscribing(false);
     }
   }, [addMessage, toast]);
   
@@ -202,6 +205,7 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
   return (
     <div className="flex flex-col flex-1 h-full min-h-0 bg-background">
       <RecordingOverlay isRecording={audioRecorder.isRecording} stopRecording={audioRecorder.stopRecording} />
+      <TranscriptionOverlay isTranscribing={isTranscribing} />
       <header className="flex items-center gap-4 border-b bg-secondary/30 p-4">
         <Button variant="ghost" size="icon" onClick={onNewChat} className="h-9 w-9">
           <ArrowLeft className="h-5 w-5" />
