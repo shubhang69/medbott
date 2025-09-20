@@ -1,16 +1,33 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 export function SoundWave() {
+  const [barHeights, setBarHeights] = useState<number[]>([]);
+
+  useEffect(() => {
+    // Generate initial random heights
+    const initialHeights = Array.from({ length: 40 }, () => Math.floor(Math.random() * 80) + 10);
+    setBarHeights(initialHeights);
+
+    // Animate the bars
+    const interval = setInterval(() => {
+      setBarHeights(heights =>
+        heights.map(() => Math.floor(Math.random() * 80) + 10)
+      );
+    }, 150);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="flex items-center justify-center space-x-1.5 opacity-15">
-      {Array.from({ length: 21 }).map((_, i) => (
+    <div className="flex items-center justify-center gap-1 opacity-20">
+      {barHeights.map((height, i) => (
         <div
           key={i}
-          className="h-2 w-2 rounded-full bg-primary"
+          className="w-1.5 rounded-full bg-primary transition-all duration-150"
           style={{
-            height: `${Math.floor(Math.random() * 80) + 20}px`,
-            width: `6px`,
-            animation: `sound-wave 1.5s ease-in-out ${i * 0.1}s infinite`,
+            height: `${height}px`,
           }}
         />
       ))}

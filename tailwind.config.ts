@@ -90,15 +90,6 @@ export default {
           from: { opacity: '0', transform: 'scale(0.95)' },
           to: { opacity: '1', transform: 'scale(1)' },
         },
-        'waveform': {
-          '0%': { transform: 'scaleY(0.1)', opacity: '0.7' },
-          '50%': { transform: 'scaleY(1)', opacity: '1' },
-          '100%': { transform: 'scaleY(0.1)', opacity: '0.7' },
-        },
-        'sound-wave': {
-          '0%, 100%': { transform: 'scaleY(0.2)' },
-          '50%': { transform: 'scaleY(1)' },
-        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -106,8 +97,6 @@ export default {
         'glow': 'glow 3s ease-in-out infinite',
         'fade-in': 'fade-in 0.5s ease-out forwards',
         'fade-in-scale': 'fade-in-scale 0.5s ease-out forwards',
-        'waveform': 'waveform 2s infinite ease-out',
-        'sound-wave': 'sound-wave 1.5s ease-in-out infinite',
       },
     },
   },

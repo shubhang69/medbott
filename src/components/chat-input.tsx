@@ -16,14 +16,8 @@ interface ChatInputProps {
 
 export function ChatInput({ onSubmit, onFileSubmit, isLoading, audioRecorder }: ChatInputProps) {
   const [inputValue, setInputValue] = useState('');
-  const { startRecording, stopRecording, isRecording, audioDataUri } = audioRecorder;
+  const { startRecording, stopRecording, isRecording } = audioRecorder;
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!isRecording && audioDataUri && !inputValue) {
-      // The chat-interface handles submission, so we don't need to call onSubmit here.
-    }
-  }, [isRecording, audioDataUri, inputValue]);
 
   const handleTextSubmit = () => {
      if (inputValue.trim() && !isLoading) {
@@ -36,6 +30,7 @@ export function ChatInput({ onSubmit, onFileSubmit, isLoading, audioRecorder }: 
     if (isRecording) {
       stopRecording();
     } else {
+      setInputValue(''); // Clear input when starting recording
       startRecording();
     }
   }
@@ -105,7 +100,7 @@ export function ChatInput({ onSubmit, onFileSubmit, isLoading, audioRecorder }: 
         onClick={toggleRecording}
         className={cn(
           "relative h-14 w-14 flex-shrink-0 rounded-full transition-all duration-300",
-          isRecording ? 'bg-destructive scale-100' : 'bg-primary'
+          isRecording ? 'bg-destructive scale-110' : 'bg-primary'
         )}
         aria-label={isRecording ? 'Stop recording' : 'Start recording'}
         disabled={isLoading}

@@ -127,8 +127,9 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
   useEffect(() => {
     if (audioRecorder.audioDataUri && !audioRecorder.isRecording) {
       handleAudioSubmit(audioRecorder.audioDataUri);
+      audioRecorder.clearAudioData();
     }
-  }, [audioRecorder.audioDataUri, audioRecorder.isRecording, handleAudioSubmit]);
+  }, [audioRecorder.audioDataUri, audioRecorder.isRecording, handleAudioSubmit, audioRecorder.clearAudioData]);
 
   const advanceQuestion = useCallback((newAnswers?: Answers) => {
     const nextIndex = currentQuestionIndex + 1;
@@ -200,13 +201,13 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
 
   return (
     <div className="flex flex-col flex-1 h-full min-h-0 bg-background">
-       <header className="flex items-center gap-4 border-b bg-secondary/30 p-4">
+      <RecordingOverlay isRecording={audioRecorder.isRecording} stopRecording={audioRecorder.stopRecording} />
+      <header className="flex items-center gap-4 border-b bg-secondary/30 p-4">
         <Button variant="ghost" size="icon" onClick={onNewChat} className="h-9 w-9">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h2 className="text-lg font-semibold">Diagnostic Assistant</h2>
       </header>
-      <RecordingOverlay isRecording={audioRecorder.isRecording} stopRecording={audioRecorder.stopRecording} />
       <ChatMessages messages={messages} />
       <div ref={bottomRef} />
 

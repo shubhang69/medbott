@@ -16,19 +16,19 @@ export function RecordingOverlay({ isRecording, stopRecording }: RecordingOverla
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/90 backdrop-blur-lg animate-fade-in"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm animate-fade-in"
       aria-modal="true"
       role="dialog"
     >
-      <div className="absolute top-0 flex h-full w-full items-center justify-center overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center overflow-hidden">
         <SoundWave />
       </div>
 
       <div className="z-10 flex flex-col items-center text-center text-foreground">
-        <Mic className="h-16 w-16" />
+        <Mic className="h-16 w-16 mb-4 text-primary animate-pulse" />
         <p className="mt-4 text-2xl font-semibold">Listening...</p>
         <p className="mt-1 text-muted-foreground">
-          Tell me how you are feeling.
+          Describe the patient's symptoms.
         </p>
 
         <Button
