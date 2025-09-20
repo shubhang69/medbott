@@ -2,10 +2,16 @@
 
 import { Suspense } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
-import { BrainModel } from '@/components/brain-model';
 import { ArrowRight, BotMessageSquare } from 'lucide-react';
 import { Logo } from '@/components/logo';
+
+const BrainModel = dynamic(() => import('@/components/brain-model').then(mod => mod.BrainModel), {
+  ssr: false,
+  loading: () => <div className="h-full w-full bg-background" />,
+});
+
 
 export default function Home() {
   return (
