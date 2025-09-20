@@ -107,6 +107,7 @@ export default {
         'fade-in': 'fade-in 0.5s ease-out forwards',
         'fade-in-scale': 'fade-in-scale 0.5s ease-out forwards',
         'waveform': 'waveform 2s infinite ease-out',
+        'sound-wave': 'sound-wave 1.5s ease-in-out infinite',
       },
     },
   },
