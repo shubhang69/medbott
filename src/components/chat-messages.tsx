@@ -31,8 +31,8 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
 
           <div
             className={cn(
-              'max-w-md rounded-lg p-3 text-sm',
-              message.sender === 'user' ? 'bg-secondary text-secondary-foreground' : 'bg-card text-card-foreground'
+              'max-w-[80%] rounded-lg p-3 text-sm',
+              message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
             )}
           >
             {message.isLoading ? (

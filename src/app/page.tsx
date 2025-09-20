@@ -3,29 +3,30 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { ArrowRight } from 'lucide-react';
+import { Soundwave } from 'lucide-react';
 
 export default function Home() {
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-background overflow-hidden">
-      <div className="flex flex-col items-center justify-center flex-1 space-y-6">
-        <div style={{ animationDelay: '0.1s' }} className="opacity-0 animate-fade-in">
-          <Logo animated={true} className="w-32 h-32" />
+    <main className="flex h-screen w-full items-center justify-center">
+      <div className="relative mx-auto flex h-[85vh] w-full max-w-sm flex-col overflow-hidden rounded-3xl border-8 border-gray-800 bg-background shadow-2xl">
+        <div className="flex flex-1 flex-col items-center justify-center space-y-6 p-8 text-center">
+          <div style={{ animationDelay: '0.1s' }} className="opacity-0 animate-fade-in">
+            <Logo className="w-24 h-24" />
+          </div>
+          <h1 style={{ animationDelay: '0.6s' }} className="text-5xl font-bold tracking-tighter text-foreground opacity-0 animate-fade-in font-headline">
+            MediTalk
+          </h1>
+          <p style={{ animationDelay: '0.9s' }} className="text-md text-muted-foreground max-w-xs opacity-0 animate-fade-in">
+            Empowering your health journey with the best conversations
+          </p>
         </div>
-        <h1 style={{ animationDelay: '0.6s' }} className="text-5xl font-bold tracking-tighter text-foreground opacity-0 animate-fade-in font-headline md:text-6xl">
-          MediMind
-        </h1>
-        <p style={{ animationDelay: '0.9s' }} className="text-lg text-muted-foreground max-w-md opacity-0 animate-fade-in">
-          Your intelligent health assistant. Log your symptoms with a simple conversation.
-        </p>
-      </div>
-      <div style={{ animationDelay: '1.3s' }} className="w-full max-w-sm opacity-0 animate-fade-in">
-        <Button size="lg" className="w-full text-lg h-14" asChild>
-          <Link href="/chat">
-            GET STARTED
-            <ArrowRight className="ml-2" />
-          </Link>
-        </Button>
+        <div style={{ animationDelay: '1.3s' }} className="w-full p-4 opacity-0 animate-fade-in">
+          <Button size="lg" className="w-full text-lg h-16 rounded-2xl bg-primary/90 hover:bg-primary" asChild>
+            <Link href="/chat">
+              <Soundwave size={28} />
+            </Link>
+          </Button>
+        </div>
       </div>
     </main>
   );

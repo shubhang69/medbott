@@ -43,7 +43,7 @@ export function ChatInterface() {
       
       if(nextQuestion.type === 'summary') {
         message.content = (
-          <Card className="bg-transparent border-primary">
+          <Card className="bg-secondary border-primary/50">
             <CardHeader>
               <CardTitle>Symptom Summary</CardTitle>
             </CardHeader>
@@ -104,7 +104,7 @@ export function ChatInterface() {
       <ChatMessages messages={messages} />
       <div ref={bottomRef} />
 
-      <div className="p-4 shrink-0">
+      <div className="p-4 shrink-0 bg-background">
         {!isBotLoading && currentQuestion && (
           <div className="animate-fade-in">
             {currentQuestion.type === 'initial' && <ChatInput onSubmit={handleSubmitInitial} isLoading={isBotLoading} />}
