@@ -33,20 +33,20 @@ export function ChatInterface() {
   }, []);
 
   const handleRestart = useCallback(() => {
-    setMessages(prev => {
-        if(prev.length > 1) {
-            return [{
+    if (messages.length > 1) {
+        setMessages([
+            {
                 id: 'initial-message',
                 sender: 'bot',
                 text: questions[0].text,
-            }];
-        }
-        return prev;
-    });
+            },
+        ]);
+    }
     setCurrentQuestionIndex(0);
     setAnswers({});
     setIsBotLoading(false);
-  }, []);
+  }, [messages.length]);
+  
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -63,8 +63,15 @@ export function ChatInterface() {
     addMessage({ sender: 'bot', text: 'Transcribing audio...', id: transcribingMessageId });
   
     try {
-      // Defaulting to English ('en') for now. This can be made dynamic later.
-      const { transcription } = await transcribeAudio({ audioDataUri, language: 'en' });
+      // Extract base64 data and mimeType from data URI
+      const match = audioDataUri.match(/^data:(.*);base64,(.*)$/);
+      if (!match) {
+        throw new Error('Invalid audio data URI format.');
+      }
+      const mimeType = match[1];
+      const audioData = match[2];
+      
+      const { transcription } = await transcribeAudio({ audioData, mimeType, language: 'en' });
       
       setMessages(prev => prev.filter(m => m.id !== transcribingMessageId));
       setMessages(prev => prev.filter(m => typeof m.content === 'object')); // Remove the audio player/upload message
