@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'MediTalk',
+  title: 'MediMind',
   description: 'Your intelligent health assistant.',
 };
 
@@ -19,7 +19,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased bg-[#0A1817]">
+      <body className="font-body antialiased bg-background">
         <div className="relative min-h-screen w-full">
           {children}
         </div>

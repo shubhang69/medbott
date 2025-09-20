@@ -3,7 +3,7 @@
 import { Message } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, User } from 'lucide-react';
+import { Stethoscope, User } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 
 interface ChatMessagesProps {
@@ -17,22 +17,22 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
         <div
           key={message.id}
           className={cn(
-            'flex items-start gap-4',
+            'flex items-start gap-3',
             message.sender === 'user' && 'justify-end'
           )}
         >
           {message.sender === 'bot' && (
-            <Avatar className="w-8 h-8 shrink-0">
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                <Bot size={20} />
+            <Avatar className="w-8 h-8 shrink-0 bg-primary/20 text-primary">
+              <AvatarFallback className="bg-transparent">
+                <Stethoscope size={20} />
               </AvatarFallback>
             </Avatar>
           )}
 
           <div
             className={cn(
-              'max-w-[80%] rounded-lg p-3 text-sm',
-              message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
+              'max-w-[80%] rounded-2xl p-3 px-4 text-sm',
+              message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary'
             )}
           >
             {message.isLoading ? (
