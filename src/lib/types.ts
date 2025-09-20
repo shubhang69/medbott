@@ -23,6 +23,7 @@ export type Conversation = {
   id: string;
   title: string;
   messages: Message[];
+  answers: Answers;
   createdAt: number;
   lastModified: number;
 };

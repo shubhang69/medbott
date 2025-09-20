@@ -23,43 +23,45 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps) {
   const { getConversation, saveConversation } = useChatHistory();
-  const [messages, setMessages] = useState<Message[]>([{
-      id: 'initial-message',
-      sender: 'bot',
-      text: questions[0].text,
-  }]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Answers>({});
+
+  const getInitialState = () => {
+    const existingConversation = getConversation(conversationId);
+    if (existingConversation && existingConversation.messages.length > 0) {
+      const lastBotMessage = existingConversation.messages
+        .slice()
+        .reverse()
+        .find((m) => m.sender === 'bot' && !m.isLoading);
+      const question = questions.find((q) => q.text === lastBotMessage?.text);
+      const questionIndex = question ? questions.indexOf(question) : 0;
+      return {
+        messages: existingConversation.messages,
+        questionIndex: questionIndex,
+        answers: existingConversation.answers || {},
+      };
+    }
+    return {
+      messages: [{ id: 'initial-message', sender: 'bot', text: questions[0].text }],
+      questionIndex: 0,
+      answers: {},
+    };
+  };
+
+  const [messages, setMessages] = useState<Message[]>(() => getInitialState().messages);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(() => getInitialState().questionIndex);
+  const [answers, setAnswers] = useState<Answers>(() => getInitialState().answers);
   const [isBotLoading, setIsBotLoading] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const { toast } = useToast();
   const bottomRef = useRef<HTMLDivElement>(null);
   const audioRecorder = useAudioRecorder();
-
+  
   useEffect(() => {
+    // Only save if there are more than the initial message, or if it's a pre-existing chat
     const existingConversation = getConversation(conversationId);
-    if (existingConversation && existingConversation.messages.length > 0) {
-      setMessages(existingConversation.messages);
-      const lastBotMessage = existingConversation.messages.slice().reverse().find(m => m.sender === 'bot' && !m.isLoading);
-      const question = questions.find(q => q.text === lastBotMessage?.text);
-      if(question) {
-        setCurrentQuestionIndex(questions.indexOf(question));
-      }
-    } else {
-        setMessages([{
-            id: 'initial-message',
-            sender: 'bot',
-            text: questions[0].text,
-        }]);
+    if (messages.length > 1 || existingConversation) {
+      saveConversation(conversationId, messages, answers);
     }
-  }, [conversationId, getConversation]);
-
-  useEffect(() => {
-    // Only save if there are more than the initial message
-    if (messages.length > 1) {
-      saveConversation(conversationId, messages);
-    }
-  }, [conversationId, messages, saveConversation]);
+  }, [conversationId, messages, answers, saveConversation, getConversation]);
   
 
   const addMessage = useCallback((message: Omit<Message, 'id'>) => {
@@ -84,7 +86,6 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
     setIsTranscribing(true);
   
     try {
-      // Extract base64 data and mimeType from data URI
       const match = audioDataUri.match(/^data:(.*);base64,(.*)$/);
       if (!match) {
         throw new Error('Invalid audio data URI format.');
@@ -94,7 +95,7 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
       
       const { transcription } = await transcribeAudio({ audioData, mimeType, language: 'en' });
       
-      setMessages(prev => prev.filter(m => typeof m.content === 'object')); // Remove the audio player/upload message
+      setMessages(prev => prev.filter(m => typeof m.content === 'object'));
 
       if (transcription && transcription.trim()) {
         handleSubmitInitial(transcription);
@@ -132,7 +133,7 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
       handleAudioSubmit(audioRecorder.audioDataUri);
       audioRecorder.clearAudioData();
     }
-  }, [audioRecorder.audioDataUri, audioRecorder.isRecording, handleAudioSubmit, audioRecorder.clearAudioData]);
+  }, [audioRecorder.audioDataUri, audioRecorder.isRecording, handleAudioSubmit, audioRecorder]);
 
   const advanceQuestion = useCallback((newAnswers?: Answers) => {
     const nextIndex = currentQuestionIndex + 1;
@@ -184,11 +185,10 @@ export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps)
       setMessages(prev => prev.filter(m => !m.isLoading));
       
       const newAnswers = { caseDetails: symptomDescription, analysis: summary };
-      setAnswers(newAnswers);
+      setAnswers(prevAnswers => ({...prevAnswers, ...newAnswers}));
       
       addMessage({ sender: 'bot', text: `Thank you, Doctor. I am analyzing the case...` });
       
-      // Pass newAnswers directly to advanceQuestion
       advanceQuestion(newAnswers);
 
     } catch (error) {

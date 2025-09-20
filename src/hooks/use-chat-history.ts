@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Conversation, Message } from '@/lib/types';
+import type { Conversation, Message, Answers } from '@/lib/types';
 
 const CHAT_HISTORY_KEY = 'medimind-chat-history';
 
@@ -31,20 +31,31 @@ export function useChatHistory() {
   };
   
   const getConversation = useCallback((id: string): Conversation | undefined => {
-    return conversations.find(c => c.id === id);
-  }, [conversations]);
+    // This needs to read from the state variable which is updated from local storage
+    const storedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
+    if (storedHistory) {
+        const parsedHistory: Conversation[] = JSON.parse(storedHistory);
+        return parsedHistory.find(c => c.id === id);
+    }
+    return undefined;
+  }, []);
 
 
-  const saveConversation = useCallback((id: string, messages: Message[]) => {
+  const saveConversation = useCallback((id: string, messages: Message[], answers: Answers) => {
     setConversations(prev => {
-        const existingConversation = prev.find(c => c.id === id);
+        const existingConversationIndex = prev.findIndex(c => c.id === id);
         let newConversations: Conversation[];
         
-        if (existingConversation) {
+        if (existingConversationIndex > -1) {
             // Update existing conversation
-            newConversations = prev.map(c => 
-                c.id === id ? { ...c, messages, lastModified: Date.now() } : c
-            );
+            const updatedConversation = { 
+                ...prev[existingConversationIndex], 
+                messages, 
+                answers,
+                lastModified: Date.now() 
+            };
+            newConversations = [...prev];
+            newConversations[existingConversationIndex] = updatedConversation;
         } else {
             // Create new conversation
             const userMessage = messages.find(m => m.sender === 'user' && typeof m.text === 'string');
@@ -54,6 +65,7 @@ export function useChatHistory() {
                 id,
                 title,
                 messages,
+                answers,
                 createdAt: Date.now(),
                 lastModified: Date.now(),
             };
