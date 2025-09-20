@@ -49,12 +49,35 @@ export function ChatInterface() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  useEffect(() => {
-    if (audioRecorder.audioDataUri) {
-      handleTranscription(audioRecorder.audioDataUri);
+  const handleAudioSubmit = useCallback(async (audioDataUri: string) => {
+    addMessage({ sender: 'user', content: <audio controls src={audioDataUri} className="w-full" /> });
+    setIsBotLoading(true);
+    addMessage({ sender: 'bot', isLoading: true, id: 'transcribing-loader' });
+  
+    try {
+      const { transcription } = await transcribeAudio({ audioDataUri });
+      
+      setMessages(prev => prev.filter(m => m.id !== 'transcribing-loader'));
+
+      if (transcription) {
+        handleSubmitInitial(transcription);
+      } else {
+        throw new Error('Transcription failed or returned empty.');
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ title: 'Error', description: 'Could not transcribe audio. Please try again or type your message.', variant: 'destructive' });
+      setMessages(prev => prev.filter(m => !m.isLoading));
+      setIsBotLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audioRecorder.audioDataUri]);
+  }, [addMessage, toast]);
+
+
+  useEffect(() => {
+    if (audioRecorder.audioDataUri && !audioRecorder.isRecording) {
+      handleAudioSubmit(audioRecorder.audioDataUri);
+    }
+  }, [audioRecorder.audioDataUri, audioRecorder.isRecording, handleAudioSubmit]);
 
   const advanceQuestion = useCallback((newAnswers?: Answers) => {
     const nextIndex = currentQuestionIndex + 1;
@@ -92,30 +115,10 @@ export function ChatInterface() {
     }
   }, [currentQuestionIndex, addMessage, answers]);
   
-  const handleTranscription = async (audioDataUri: string) => {
-    addMessage({ sender: 'user', content: <audio controls src={audioDataUri} className="w-full" /> });
-    setIsBotLoading(true);
-    addMessage({ sender: 'bot', isLoading: true });
-
-    try {
-      const { transcription } = await transcribeAudio({ audioDataUri });
-      if (transcription) {
-        handleSubmitInitial(transcription);
-      } else {
-        throw new Error('Transcription failed.');
-      }
-    } catch (error) {
-      console.error(error);
-      toast({ title: 'Error', description: 'Could not transcribe audio. Please try again or type your message.', variant: 'destructive' });
-      setMessages(prev => prev.filter(m => !m.isLoading));
-      setIsBotLoading(false);
-    }
-  };
-  
   const handleSubmitInitial = async (symptomDescription: string) => {
     addMessage({ sender: 'user', text: symptomDescription });
     setIsBotLoading(true);
-    setMessages(prev => prev.filter(m => typeof m.content === 'undefined'));
+    setMessages(prev => prev.filter(m => typeof m.content === 'undefined' && m.id !== 'transcribing-loader'));
     
     setMessages(prev => {
       if (prev.some(m => m.isLoading)) return prev;

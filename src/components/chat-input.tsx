@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Mic, Send } from 'lucide-react';
@@ -17,21 +17,24 @@ export function ChatInput({ onSubmit, isLoading, audioRecorder }: ChatInputProps
   const [inputValue, setInputValue] = useState('');
   const { startRecording, stopRecording, isRecording, audioDataUri } = audioRecorder;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputValue.trim() && !isLoading) {
-      if (isRecording) {
-        stopRecording();
-      }
-      onSubmit(inputValue, audioDataUri);
-      setInputValue('');
+  useEffect(() => {
+    if (!isRecording && audioDataUri && !inputValue) {
+      // We don't need to do anything here because the chat-interface handles submission
     }
-  };
+  }, [isRecording, audioDataUri, inputValue, onSubmit]);
 
   const handleTextSubmit = () => {
      if (inputValue.trim() && !isLoading) {
       onSubmit(inputValue);
       setInputValue('');
+    }
+  }
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
     }
   }
 
@@ -45,6 +48,7 @@ export function ChatInput({ onSubmit, isLoading, audioRecorder }: ChatInputProps
           disabled={isLoading || isRecording}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
               handleTextSubmit();
             }
           }}
@@ -68,12 +72,13 @@ export function ChatInput({ onSubmit, isLoading, audioRecorder }: ChatInputProps
         type="button"
         size="icon"
         variant="default"
-        onClick={isRecording ? stopRecording : startRecording}
+        onClick={toggleRecording}
         className={cn(
           "relative h-14 w-14 flex-shrink-0 rounded-full transition-all duration-300",
           isRecording ? 'bg-destructive scale-100' : 'bg-primary'
         )}
         aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+        disabled={isLoading}
       >
         <Mic className={cn("z-10 h-6 w-6")} />
       </Button>
