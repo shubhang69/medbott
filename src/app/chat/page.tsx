@@ -16,10 +16,10 @@ export default function ChatPage() {
         <div className="flex flex-col items-center text-center">
           <Logo className="mb-6 h-28 w-28" />
           <h1 className="text-4xl font-bold tracking-tighter text-foreground sm:text-5xl">
-            Hi, I'm MediMind
+            Welcome, Doctor
           </h1>
           <p className="mt-4 max-w-md text-muted-foreground">
-            Your personal AI health assistant. I can help you understand your symptoms.
+            I'm your AI assistant for diagnostic support and medical knowledge.
           </p>
         </div>
       </div>
@@ -33,16 +33,16 @@ export default function ChatPage() {
               onClick={() => setIsChatOpen(true)}
             >
               <MessageCircle className="mr-2" />
-              Chat about your symptoms
+              Start a new case
             </Button>
             <p className="mt-2 text-xs text-muted-foreground">
-              MediMind is not a replacement for a doctor.
+              MediMind is a decision support tool and not a substitute for clinical judgment.
             </p>
           </div>
         </SheetTrigger>
         <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl border-t-4 border-primary bg-background">
-          <SheetHeader className="sr-only">
-            <SheetTitle>Chat Interface</SheetTitle>
+          <SheetHeader>
+            <SheetTitle>Diagnostic Assistant</SheetTitle>
           </SheetHeader>
           <ChatInterface />
         </SheetContent>

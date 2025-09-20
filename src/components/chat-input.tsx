@@ -39,7 +39,7 @@ export function ChatInput({ onSubmit, isLoading, audioRecorder }: ChatInputProps
     <div className="flex w-full items-center gap-3 p-4">
       <div className="relative flex-1">
         <Input
-          placeholder={isRecording ? 'Listening...' : 'Tell me how you are feeling...'}
+          placeholder={isRecording ? 'Listening...' : 'Enter patient symptoms and history...'}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           disabled={isLoading || isRecording}

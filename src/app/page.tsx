@@ -31,6 +31,7 @@ export default function Home() {
           <h1 className="text-4xl font-bold tracking-tighter text-foreground font-headline">
             MediMind
           </h1>
+          <p className="text-lg text-muted-foreground">Your AI Diagnostic Partner</p>
         </div>
       </div>
     </main>

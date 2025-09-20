@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview Summarizes user's symptom descriptions for clarity.
+ * @fileOverview Analyzes a patient's case description and provides a structured summary for a doctor.
  *
- * - summarizeSymptomDescription - A function that summarizes the symptom description.
+ * - summarizeSymptomDescription - A function that analyzes the case description.
  * - SummarizeSymptomDescriptionInput - The input type for the summarizeSymptomDescription function.
  * - SummarizeSymptomDescriptionOutput - The return type for the summarizeSymptomDescription function.
  */
@@ -13,7 +13,7 @@ import {z} from 'genkit';
 const SummarizeSymptomDescriptionInputSchema = z.object({
   symptomDescription: z
     .string()
-    .describe('The user-provided description of their symptoms.'),
+    .describe("The doctor-provided description of the patient's case, including symptoms, history, and findings."),
 });
 export type SummarizeSymptomDescriptionInput = z.infer<
   typeof SummarizeSymptomDescriptionInputSchema
@@ -22,7 +22,7 @@ export type SummarizeSymptomDescriptionInput = z.infer<
 const SummarizeSymptomDescriptionOutputSchema = z.object({
   summary: z
     .string()
-    .describe('A concise summary of the user provided symptom description.'),
+    .describe('A structured analysis including potential differential diagnoses, questions to ask, and recommended tests.'),
 });
 export type SummarizeSymptomDescriptionOutput = z.infer<
   typeof SummarizeSymptomDescriptionOutputSchema
@@ -38,9 +38,17 @@ const prompt = ai.definePrompt({
   name: 'summarizeSymptomDescriptionPrompt',
   input: {schema: SummarizeSymptomDescriptionInputSchema},
   output: {schema: SummarizeSymptomDescriptionOutputSchema},
-  prompt: `Summarize the following symptom description to ensure clarity for the chatbot:
+  prompt: `You are an expert AI medical assistant for doctors. Your role is to analyze a patient's case as described by a physician and provide decision support.
 
-Symptom Description: {{{symptomDescription}}}`,
+Analyze the following case details:
+Case Description: {{{symptomDescription}}}
+
+Based on the provided information, generate a structured analysis that includes:
+1.  A list of potential differential diagnoses, ordered from most to least likely.
+2.  Key follow-up questions to ask the patient to further narrow down the diagnosis.
+3.  Recommendations for relevant diagnostic tests or labs.
+
+Present this information clearly and concisely to assist the doctor in their diagnostic process.`,
 });
 
 const summarizeSymptomDescriptionFlow = ai.defineFlow(

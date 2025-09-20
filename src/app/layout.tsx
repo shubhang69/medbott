@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: 'MediMind',
-  description: 'Your intelligent health assistant.',
+  description: 'Your AI diagnostic partner.',
 };
 
 export default function RootLayout({

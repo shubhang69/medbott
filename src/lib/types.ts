@@ -8,16 +8,13 @@ export interface Message {
 
 export type Question = {
   id: number;
-  key: 'initial' | 'location' | 'pain-scale' | 'duration' | 'summary' | 'final';
+  key: 'initial' | 'summary' | 'final';
   text: string;
-  type: 'initial' | 'location' | 'pain-scale' | 'duration' | 'summary' | 'final';
+  type: 'initial' | 'summary' | 'final';
   options?: string[];
 };
 
 export type Answers = {
-  initial?: string;
-  understanding?: string;
-  location?: string;
-  'pain-scale'?: number;
-  duration?: string;
+  caseDetails?: string;
+  analysis?: string;
 };
