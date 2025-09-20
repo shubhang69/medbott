@@ -51,8 +51,12 @@ export function ChatInterface() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleAudioSubmit = useCallback(async (audioDataUri: string) => {
-    addMessage({ sender: 'user', content: <audio controls src={audioDataUri} className="w-full" /> });
+  const handleAudioSubmit = useCallback(async (audioDataUri: string, fileName?: string) => {
+    const content = fileName 
+      ? `Uploaded: ${fileName}` 
+      : <audio controls src={audioDataUri} className="w-full" />;
+    
+    addMessage({ sender: 'user', content: content });
     setIsBotLoading(true);
     const transcribingMessageId = 'transcribing-loader';
     addMessage({ sender: 'bot', text: 'Transcribing audio...', id: transcribingMessageId });
@@ -61,12 +65,12 @@ export function ChatInterface() {
       const { transcription } = await transcribeAudio({ audioDataUri });
       
       setMessages(prev => prev.filter(m => m.id !== transcribingMessageId));
-      setMessages(prev => prev.filter(m => typeof m.content !== 'object')); // Remove the audio player
+      setMessages(prev => prev.filter(m => typeof m.content !== 'object')); // Remove the audio player/upload message
 
       if (transcription && transcription.trim()) {
         handleSubmitInitial(transcription);
       } else {
-         addMessage({ sender: 'bot', text: 'Transcription was empty. Please try recording again.'});
+         addMessage({ sender: 'bot', text: 'Transcription was empty. Please try again.'});
          setIsBotLoading(false);
       }
     } catch (error) {
@@ -77,6 +81,21 @@ export function ChatInterface() {
       setIsBotLoading(false);
     }
   }, [addMessage, toast]);
+  
+  const handleFileUpload = (file: File) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        const audioDataUri = reader.result as string;
+        handleAudioSubmit(audioDataUri, file.name);
+      };
+      reader.onerror = (error) => {
+        console.error("Error reading file:", error);
+        toast({ title: "Error", description: "Could not read the uploaded file.", variant: "destructive"});
+      };
+    }
+  }
 
 
   useEffect(() => {
@@ -162,7 +181,7 @@ export function ChatInterface() {
       <div className="p-4 shrink-0 bg-background/0">
         {!isBotLoading && currentQuestion && (
           <div className="animate-fade-in">
-            {currentQuestion.type === 'initial' && <ChatInput onSubmit={handleSubmitInitial} isLoading={isBotLoading} audioRecorder={audioRecorder} />}
+            {currentQuestion.type === 'initial' && <ChatInput onSubmit={handleSubmitInitial} onFileSubmit={handleFileUpload} isLoading={isBotLoading} audioRecorder={audioRecorder} />}
             {currentQuestion.type === 'final' && (
               <div className="text-center">
                 <Button onClick={handleRestart}>Start New Case</Button>

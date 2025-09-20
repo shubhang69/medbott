@@ -1,21 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mic, Send } from 'lucide-react';
+import { Mic, Send, Paperclip } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { UseAudioRecorder } from '@/hooks/use-audio-recorder';
 
 interface ChatInputProps {
   onSubmit: (value: string, audioDataUri?: string) => void;
+  onFileSubmit: (file: File) => void;
   isLoading: boolean;
   audioRecorder: UseAudioRecorder;
 }
 
-export function ChatInput({ onSubmit, isLoading, audioRecorder }: ChatInputProps) {
+export function ChatInput({ onSubmit, onFileSubmit, isLoading, audioRecorder }: ChatInputProps) {
   const [inputValue, setInputValue] = useState('');
   const { startRecording, stopRecording, isRecording, audioDataUri } = audioRecorder;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isRecording && audioDataUri && !inputValue) {
@@ -35,6 +37,13 @@ export function ChatInput({ onSubmit, isLoading, audioRecorder }: ChatInputProps
       stopRecording();
     } else {
       startRecording();
+    }
+  }
+  
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      onFileSubmit(file);
     }
   }
 
@@ -67,6 +76,27 @@ export function ChatInput({ onSubmit, isLoading, audioRecorder }: ChatInputProps
           </Button>
         )}
       </div>
+      
+      <input 
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+        accept="audio/*"
+        disabled={isLoading}
+      />
+      
+      <Button
+        type="button"
+        size="icon"
+        variant="outline"
+        onClick={() => fileInputRef.current?.click()}
+        className="h-14 w-14 flex-shrink-0 rounded-full"
+        aria-label="Upload audio file"
+        disabled={isLoading || isRecording}
+      >
+        <Paperclip className="h-6 w-6" />
+      </Button>
 
       <Button
         type="button"
