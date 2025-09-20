@@ -12,15 +12,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RecordingOverlay } from '@/components/recording-overlay';
 import { transcribeAudio } from '@/ai/flows/transcribe-audio';
+import { useChatHistory } from '@/hooks/use-chat-history';
+import { ArrowLeft } from 'lucide-react';
 
-export function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'initial-message',
-      sender: 'bot',
-      text: questions[0].text,
-    },
-  ]);
+interface ChatInterfaceProps {
+  conversationId: string;
+  onNewChat: () => void;
+}
+
+export function ChatInterface({ conversationId, onNewChat }: ChatInterfaceProps) {
+  const { getConversation, saveConversation } = useChatHistory();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [isBotLoading, setIsBotLoading] = useState(false);
@@ -28,24 +30,38 @@ export function ChatInterface() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const audioRecorder = useAudioRecorder();
 
+  useEffect(() => {
+    const existingConversation = getConversation(conversationId);
+    if (existingConversation) {
+      setMessages(existingConversation.messages);
+      const lastBotMessage = existingConversation.messages.slice().reverse().find(m => m.sender === 'bot' && !m.isLoading);
+      const question = questions.find(q => q.text === lastBotMessage?.text);
+      if(question) {
+        setCurrentQuestionIndex(questions.indexOf(question));
+      }
+    } else {
+      setMessages([{
+        id: 'initial-message',
+        sender: 'bot',
+        text: questions[0].text,
+      }]);
+    }
+  }, [conversationId, getConversation]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveConversation(conversationId, messages);
+    }
+  }, [conversationId, messages, saveConversation]);
+  
+
   const addMessage = useCallback((message: Omit<Message, 'id'>) => {
     setMessages((prev) => [...prev, { id: Date.now().toString() + Math.random(), ...message }]);
   }, []);
 
   const handleRestart = useCallback(() => {
-    if (messages.length > 1) {
-        setMessages([
-            {
-                id: 'initial-message',
-                sender: 'bot',
-                text: questions[0].text,
-            },
-        ]);
-    }
-    setCurrentQuestionIndex(0);
-    setAnswers({});
-    setIsBotLoading(false);
-  }, [messages.length]);
+    onNewChat();
+  }, [onNewChat]);
   
 
   useEffect(() => {
@@ -182,7 +198,13 @@ export function ChatInterface() {
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="flex flex-col flex-1 h-full min-h-0">
+    <div className="flex flex-col flex-1 h-full min-h-0 bg-background">
+       <header className="flex items-center gap-4 border-b bg-secondary/30 p-4">
+        <Button variant="ghost" size="icon" onClick={onNewChat} className="h-9 w-9">
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h2 className="text-lg font-semibold">Diagnostic Assistant</h2>
+      </header>
       <RecordingOverlay isRecording={audioRecorder.isRecording} stopRecording={audioRecorder.stopRecording} />
       <ChatMessages messages={messages} />
       <div ref={bottomRef} />

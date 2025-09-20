@@ -18,3 +18,11 @@ export type Answers = {
   caseDetails?: string;
   analysis?: string;
 };
+
+export type Conversation = {
+  id: string;
+  title: string;
+  messages: Message[];
+  createdAt: number;
+  lastModified: number;
+};

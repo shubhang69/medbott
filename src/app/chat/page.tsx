@@ -1,52 +1,136 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { MessageCircle } from 'lucide-react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { MessageCircle, PlusCircle, Trash2 } from 'lucide-react';
 import { ChatInterface } from '@/components/chat-interface';
+import { useChatHistory } from '@/hooks/use-chat-history';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export default function ChatPage() {
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const { conversations, deleteConversation } = useChatHistory();
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+
+  const handleStartNewChat = () => {
+    setSelectedConversationId(Date.now().toString());
+  };
+  
+  const handleDelete = (id: string) => {
+    deleteConversation(id);
+    if (selectedConversationId === id) {
+        setSelectedConversationId(null);
+    }
+  }
+
+  if (selectedConversationId) {
+    return (
+      <main className="h-screen w-full flex bg-background">
+        <ChatInterface
+          key={selectedConversationId}
+          conversationId={selectedConversationId}
+          onNewChat={() => setSelectedConversationId(null)}
+        />
+      </main>
+    );
+  }
 
   return (
-    <main className="flex h-screen w-full flex-col items-center justify-center bg-background bg-blurry-gradient p-4">
-      <div className="flex flex-1 items-center justify-center">
-        <div className="flex flex-col items-center text-center">
-          <Logo className="mb-6 h-28 w-28" />
-          <h1 className="text-4xl font-bold tracking-tighter text-foreground sm:text-5xl">
-            Welcome, Doctor
-          </h1>
-          <p className="mt-4 max-w-md text-muted-foreground">
-            I'm your AI assistant for diagnostic support and medical knowledge.
-          </p>
-        </div>
+    <main className="flex h-screen w-full flex-col items-center justify-center bg-background bg-blurry-gradient p-4 md:p-8">
+      <div className="flex flex-col items-center text-center">
+        <Logo className="mb-6 h-28 w-28" />
+        <h1 className="text-4xl font-bold tracking-tighter text-foreground sm:text-5xl">
+          Welcome, Doctor
+        </h1>
+        <p className="mt-4 max-w-md text-muted-foreground">
+          Start a new case or review a previous one.
+        </p>
       </div>
 
-      <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
-        <SheetTrigger asChild>
-          <div className="flex w-full max-w-md flex-col items-center">
-            <Button
-              size="lg"
-              className="w-full rounded-full bg-primary/90 text-lg font-semibold shadow-lg backdrop-blur-sm transition-all hover:bg-primary/100 hover:shadow-xl"
-              onClick={() => setIsChatOpen(true)}
-            >
-              <MessageCircle className="mr-2" />
-              Start a new case
+      <div className="mt-12 w-full max-w-2xl flex-1">
+        <Card className="h-full flex flex-col bg-card/50 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Recent Cases</CardTitle>
+            <Button variant="outline" size="sm" onClick={handleStartNewChat}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Case
             </Button>
-            <p className="mt-2 text-xs text-muted-foreground">
-              MediMind is a decision support tool and not a substitute for clinical judgment.
-            </p>
-          </div>
-        </SheetTrigger>
-        <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl border-t-4 border-primary bg-background">
-          <SheetHeader>
-            <SheetTitle>Diagnostic Assistant</SheetTitle>
-          </SheetHeader>
-          <ChatInterface />
-        </SheetContent>
-      </Sheet>
+          </CardHeader>
+          <CardContent className="flex-1 p-0">
+            <ScrollArea className="h-full">
+              {conversations.length === 0 ? (
+                <div className="flex h-full items-center justify-center p-6 text-muted-foreground">
+                  <p>No recent cases found.</p>
+                </div>
+              ) : (
+                <div className="space-y-2 p-4 pt-0">
+                  {conversations.map((convo) => (
+                    <div
+                      key={convo.id}
+                      className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-accent"
+                    >
+                      <button
+                        onClick={() => setSelectedConversationId(convo.id)}
+                        className="flex-1 text-left"
+                      >
+                        <p className="font-semibold truncate">{convo.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(convo.lastModified).toLocaleString()}
+                        </p>
+                      </button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete this chat case. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(convo.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </div>
+
+       <div className="mt-8 flex w-full max-w-md flex-col items-center">
+        <Button
+          size="lg"
+          className="w-full rounded-full bg-primary/90 text-lg font-semibold shadow-lg backdrop-blur-sm transition-all hover:bg-primary/100 hover:shadow-xl"
+          onClick={handleStartNewChat}
+        >
+          <MessageCircle className="mr-2" />
+          Start a new case
+        </Button>
+        <p className="mt-2 text-xs text-muted-foreground">
+          MediMind is a decision support tool and not a substitute for clinical judgment.
+        </p>
+      </div>
     </main>
   );
 }
