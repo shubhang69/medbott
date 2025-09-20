@@ -27,8 +27,8 @@ export function ChatInterface() {
   }, []);
 
   useEffect(() => {
-    addMessage({ sender: 'bot', text: questions[0].text });
-  }, [addMessage]);
+    handleRestart();
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -38,7 +38,7 @@ export function ChatInterface() {
     if (audioRecorder.audioDataUri) {
       handleTranscription(audioRecorder.audioDataUri);
     }
-  }, [audioRecorder.audioDataUri, audioRecorder.audioDataUri]);
+  }, [audioRecorder.audioDataUri]);
 
   const advanceQuestion = useCallback((newAnswers?: Answers) => {
     const nextIndex = currentQuestionIndex + 1;
