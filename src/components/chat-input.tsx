@@ -21,9 +21,9 @@ export function ChatInput({ onSubmit, onFileSubmit, isLoading, audioRecorder }: 
 
   useEffect(() => {
     if (!isRecording && audioDataUri && !inputValue) {
-      // We don't need to do anything here because the chat-interface handles submission
+      // The chat-interface handles submission, so we don't need to call onSubmit here.
     }
-  }, [isRecording, audioDataUri, inputValue, onSubmit]);
+  }, [isRecording, audioDataUri, inputValue]);
 
   const handleTextSubmit = () => {
      if (inputValue.trim() && !isLoading) {
@@ -82,7 +82,7 @@ export function ChatInput({ onSubmit, onFileSubmit, isLoading, audioRecorder }: 
         ref={fileInputRef}
         onChange={handleFileChange}
         className="hidden"
-        accept="audio/*"
+        accept="audio/mp3,audio/wav,audio/webm,audio/ogg,audio/flac,audio/m4a"
         disabled={isLoading}
       />
       

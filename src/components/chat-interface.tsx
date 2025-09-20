@@ -33,19 +33,20 @@ export function ChatInterface() {
   }, []);
 
   const handleRestart = useCallback(() => {
-    if (messages.length > 1) {
-       setMessages([
-        {
-          id: 'initial-message',
-          sender: 'bot',
-          text: questions[0].text,
-        },
-      ]);
-    }
+    setMessages(prev => {
+        if(prev.length > 1) {
+            return [{
+                id: 'initial-message',
+                sender: 'bot',
+                text: questions[0].text,
+            }];
+        }
+        return prev;
+    });
     setCurrentQuestionIndex(0);
     setAnswers({});
     setIsBotLoading(false);
-  }, [messages.length]);
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -62,10 +63,11 @@ export function ChatInterface() {
     addMessage({ sender: 'bot', text: 'Transcribing audio...', id: transcribingMessageId });
   
     try {
-      const { transcription } = await transcribeAudio({ audioDataUri });
+      // Defaulting to English ('en') for now. This can be made dynamic later.
+      const { transcription } = await transcribeAudio({ audioDataUri, language: 'en' });
       
       setMessages(prev => prev.filter(m => m.id !== transcribingMessageId));
-      setMessages(prev => prev.filter(m => typeof m.content !== 'object')); // Remove the audio player/upload message
+      setMessages(prev => prev.filter(m => typeof m.content === 'object')); // Remove the audio player/upload message
 
       if (transcription && transcription.trim()) {
         handleSubmitInitial(transcription);
