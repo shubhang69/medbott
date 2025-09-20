@@ -1,17 +1,9 @@
 'use client';
 
-import { Suspense } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, BotMessageSquare } from 'lucide-react';
 import { Logo } from '@/components/logo';
-
-const BrainModel = dynamic(() => import('@/components/brain-model').then(mod => mod.BrainModel), {
-  ssr: false,
-  loading: () => <div className="h-full w-full bg-background" />,
-});
-
 
 export default function Home() {
   return (
@@ -39,8 +31,8 @@ export default function Home() {
         </Button>
       </header>
 
-      <div className="flex flex-1 flex-col items-center justify-center md:flex-row">
-        <div className="relative z-10 flex flex-1 flex-col items-center justify-center p-8 text-center md:items-start md:text-left">
+      <div className="flex flex-1 flex-col items-center justify-center">
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center p-8 text-center">
           <h2 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
             Smarter Medical AI Brain,
             <br />
@@ -61,12 +53,6 @@ export default function Home() {
               Request a Demo
             </Button>
           </div>
-        </div>
-
-        <div className="relative h-1/2 w-full flex-1 md:h-full">
-          <Suspense fallback={<div className="h-full w-full bg-background" />}>
-            <BrainModel />
-          </Suspense>
         </div>
       </div>
     </main>
