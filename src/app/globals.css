@@ -67,6 +67,36 @@
   }
 }
 
+@layer components {
+  .loader {
+    width: 30px; /* Reduced size for chat */
+    display: flex;
+    align-items: flex-start;
+    aspect-ratio: 1;
+  }
+  .loader:before,
+  .loader:after {
+    content: "";
+    flex: 1;
+    aspect-ratio: 1;
+    --g: conic-gradient(from -90deg at 5px 5px, hsl(var(--foreground)) 90deg, #0000 0);
+    background: var(--g), var(--g), var(--g);
+    background-size: 200% 200%; /* Fix for conic gradient size */
+    filter: drop-shadow(15px 15px 0 hsl(var(--foreground)));
+    animation: l20 1s infinite;
+  }
+  .loader:after {
+    transform: scaleX(-1);
+  }
+  @keyframes l20 {
+    0%   {background-position:0     0, 5px 5px, 10px 10px}
+    33%  {background-position:5px  5px, 10px 10px, 0 0}
+    66%  {background-position:10px 10px, 0 0, 5px 5px}
+    100% {background-position:0     0, 5px 5px, 10px 10px}
+  }
+}
+
+
 @layer utilities {
   .bg-blurry-gradient {
     background-image: radial-gradient(

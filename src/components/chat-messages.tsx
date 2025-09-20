@@ -4,7 +4,7 @@ import { Message } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Stethoscope, User } from 'lucide-react';
-import { Skeleton } from './ui/skeleton';
+import { Loader } from './ui/loader';
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -39,11 +39,7 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
             )}
           >
             {message.isLoading ? (
-              <div className="flex items-center space-x-2 p-1">
-                <Skeleton className="h-2 w-2 rounded-full animate-bounce" />
-                <Skeleton className="h-2 w-2 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                <Skeleton className="h-2 w-2 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
-              </div>
+              <Loader />
             ) : (
               message.text || message.content
             )}
