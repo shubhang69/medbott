@@ -1,10 +1,10 @@
-import type {NextConfig} from 'next';
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
   experimental: {},
   allowedDevOrigins: [
-    'https://6000-firebase-studio-1758312907097.cluster-y75up3teuvc62qmnwys4deqv6y.cloudworkstations.dev',
+    "https://6000-firebase-studio-1758312907097.cluster-y75up3teuvc62qmnwys4deqv6y.cloudworkstations.dev",
   ],
   typescript: {
     ignoreBuildErrors: true,
@@ -15,22 +15,22 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "placehold.co",
+        port: "",
+        pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "picsum.photos",
+        port: "",
+        pathname: "/**",
       },
     ],
   },
