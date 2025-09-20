@@ -33,8 +33,8 @@ export function ChatInterface() {
   }, []);
 
   const handleRestart = useCallback(() => {
-    if (messages.length === 0) {
-      setMessages([
+    if (messages.length > 1) {
+       setMessages([
         {
           id: 'initial-message',
           sender: 'bot',
@@ -54,25 +54,26 @@ export function ChatInterface() {
   const handleAudioSubmit = useCallback(async (audioDataUri: string) => {
     addMessage({ sender: 'user', content: <audio controls src={audioDataUri} className="w-full" /> });
     setIsBotLoading(true);
-    addMessage({ sender: 'bot', isLoading: true, id: 'transcribing-loader' });
+    const transcribingMessageId = 'transcribing-loader';
+    addMessage({ sender: 'bot', text: 'Transcribing audio...', id: transcribingMessageId });
   
     try {
       const { transcription } = await transcribeAudio({ audioDataUri });
       
-      setMessages(prev => prev.filter(m => m.id !== 'transcribing-loader'));
-      // Remove the audio content message
-      setMessages(prev => prev.filter(m => typeof m.content !== 'object'));
+      setMessages(prev => prev.filter(m => m.id !== transcribingMessageId));
+      setMessages(prev => prev.filter(m => typeof m.content !== 'object')); // Remove the audio player
 
-      if (transcription) {
+      if (transcription && transcription.trim()) {
         handleSubmitInitial(transcription);
       } else {
-        throw new Error('Transcription failed or returned empty.');
+         addMessage({ sender: 'bot', text: 'Transcription was empty. Please try recording again.'});
+         setIsBotLoading(false);
       }
     } catch (error) {
       console.error(error);
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
       toast({ title: 'Error', description: `Could not transcribe audio. ${errorMessage}`, variant: 'destructive' });
-      setMessages(prev => prev.filter(m => !m.isLoading));
+      setMessages(prev => prev.filter(m => m.id !== transcribingMessageId));
       setIsBotLoading(false);
     }
   }, [addMessage, toast]);
@@ -123,7 +124,6 @@ export function ChatInterface() {
   const handleSubmitInitial = async (symptomDescription: string) => {
     addMessage({ sender: 'user', text: symptomDescription });
     setIsBotLoading(true);
-    setMessages(prev => prev.filter(m => typeof m.content === 'undefined' && m.id !== 'transcribing-loader'));
     
     setMessages(prev => {
       if (prev.some(m => m.isLoading)) return prev;
