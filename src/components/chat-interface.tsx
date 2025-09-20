@@ -31,8 +31,10 @@ export function ChatInterface() {
     setCurrentQuestionIndex(0);
     setAnswers({});
     setIsBotLoading(false);
-    setTimeout(() => addMessage({ sender: 'bot', text: questions[0].text }), 200);
-  }, [addMessage]);
+    if (messages.length === 0) {
+      addMessage({ sender: 'bot', text: questions[0].text });
+    }
+  }, [addMessage, messages.length]);
 
   useEffect(() => {
     handleRestart();
@@ -46,6 +48,7 @@ export function ChatInterface() {
     if (audioRecorder.audioDataUri) {
       handleTranscription(audioRecorder.audioDataUri);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioRecorder.audioDataUri]);
 
   const advanceQuestion = useCallback((newAnswers?: Answers) => {
