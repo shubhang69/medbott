@@ -14,7 +14,7 @@ import { BodyModel } from '@/components/body-model';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RecordingOverlay } from '@/components/recording-overlay';
-import { transcribeAudio } from '@/ai/flows/transcribe-audio';
+import { transcribeAudio } from '../ai/flows/transcribe-audio';
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
