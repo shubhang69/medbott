@@ -1,7 +1,6 @@
 'use client';
 
-import { Mic, Square } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Mic } from 'lucide-react';
 import { SoundWave } from '@/components/sound-wave';
 
 interface RecordingOverlayProps {
@@ -16,15 +15,16 @@ export function RecordingOverlay({ isRecording, stopRecording }: RecordingOverla
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/90 backdrop-blur-sm animate-fade-in bg-blurry-gradient"
+      className="fixed inset-0 z-50 flex cursor-pointer flex-col items-center justify-center bg-background/90 backdrop-blur-sm animate-fade-in bg-blurry-gradient"
       aria-modal="true"
       role="dialog"
+      onClick={stopRecording}
     >
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full overflow-hidden">
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 overflow-hidden">
         <SoundWave />
       </div>
       
-      <div className="relative flex h-64 w-64 items-center justify-center">
+      <div className="pointer-events-none relative flex h-64 w-64 items-center justify-center">
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
@@ -38,22 +38,11 @@ export function RecordingOverlay({ isRecording, stopRecording }: RecordingOverla
         <Mic className="h-16 w-16 text-primary" />
       </div>
 
-
-      <div className="z-10 flex flex-col items-center text-center text-foreground mt-8">
+      <div className="pointer-events-none z-10 mt-8 flex flex-col items-center text-center text-foreground">
         <p className="text-2xl font-semibold">Listening...</p>
-        <p className="mt-1 text-muted-foreground">
-          Describe the patient's symptoms.
+        <p className="mt-2 text-muted-foreground">
+          Click anywhere to stop recording.
         </p>
-
-        <Button
-          onClick={stopRecording}
-          variant="destructive"
-          size="lg"
-          className="mt-12 rounded-full"
-        >
-          <Square className="mr-2 h-5 w-5" />
-          Stop Recording
-        </Button>
       </div>
     </div>
   );
