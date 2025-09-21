@@ -9,6 +9,8 @@ import {
 } from "@react-three/drei";
 import { useRef, useMemo, useState } from "react";
 import * as THREE from "three";
+import dynamic from "next/dynamic";
+import React from "react";
 
 // Brain Model Component with proper TypeScript typing
 function BrainMesh({
@@ -234,3 +236,85 @@ export function BrainPointCloudModel({
     </div>
   );
 }
+
+// Wrap the main 3D Canvas in a separate component for dynamic import
+function Brain3DCanvas({
+  mousePosition,
+  scrollProgress,
+}: {
+  mousePosition: { x: number; y: number };
+  scrollProgress: any;
+}) {
+  return (
+    <Canvas
+      camera={{ position: [0, 0, 8], fov: 50 }}
+      gl={{ antialias: true, alpha: true }}
+      className="cursor-grab active:cursor-grabbing"
+    >
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
+      <pointLight position={[-10, -10, -5]} intensity={0.5} color="#4ade80" />
+      <BrainMesh
+        mousePosition={mousePosition}
+        scrollProgress={scrollProgress}
+      />
+      <OrbitControls
+        enableZoom={false}
+        enablePan={false}
+        autoRotateSpeed={1}
+        maxPolarAngle={Math.PI / 1.5}
+        minPolarAngle={Math.PI / 3}
+      />
+    </Canvas>
+  );
+}
+
+// Dynamically import the Brain3DCanvas component
+const DynamicBrain3DCanvas = dynamic(() => Promise.resolve(Brain3DCanvas), {
+  ssr: false,
+});
+
+// Non-SSR Wrapper Component
+const NonSSRWrapper = (props: { children: React.ReactNode }) => (
+  <React.Fragment>{props.children}</React.Fragment>
+);
+
+const DynamicNonSSRWrapper = dynamic(() => Promise.resolve(NonSSRWrapper), {
+  ssr: false,
+});
+
+// Only export the dynamic version for client-side rendering
+const DynamicBrainPointCloudModel = dynamic(
+  () => Promise.resolve(BrainPointCloudModel),
+  { ssr: false }
+);
+
+export { DynamicBrainPointCloudModel };
+
+// Exported component using dynamic import
+function BrainModel3D({
+  mousePosition,
+  scrollProgress,
+}: {
+  mousePosition: { x: number; y: number };
+  scrollProgress: any;
+}) {
+  return (
+    <DynamicBrain3DCanvas
+      mousePosition={mousePosition}
+      scrollProgress={scrollProgress}
+    />
+  );
+}
+
+// Exported component using NonSSRWrapper for client-only rendering
+const BrainModel3DClientOnly = (props: {
+  mousePosition: { x: number; y: number };
+  scrollProgress: any;
+}) => (
+  <DynamicNonSSRWrapper>
+    <BrainModel3D {...props} />
+  </DynamicNonSSRWrapper>
+);
+
+export default BrainModel3DClientOnly;

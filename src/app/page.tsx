@@ -18,10 +18,10 @@ import {
   AnimatePresence,
 } from "framer-motion";
 import { useInView } from "framer-motion";
-import { BrainPointCloudModel } from "./brain-model-3d";
 import { useToast } from "@/hooks/use-toast";
 import { useChatHistory } from "@/hooks/use-chat-history";
 import type { Message } from "@/lib/types";
+import { BrainPointCloudModel } from "./brain-model-3d";
 
 export default function Home() {
   const [selectedPart, setSelectedPart] = useState("");
