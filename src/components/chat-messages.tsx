@@ -30,14 +30,28 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
           )}
           <div
             className={cn(
-              "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
+              "max-w-[80%] rounded-2xl px-4 py-3 text-sm break-words overflow-hidden",
               message.sender === "user"
                 ? "rounded-br-none bg-primary text-primary-foreground"
                 : "rounded-bl-none bg-secondary",
               "animate-fade-in-scale"
             )}
           >
-            {message.isLoading ? <Loader /> : message.text || message.content}
+            {message.isLoading ? (
+              <Loader />
+            ) : typeof message.content === "string" &&
+              message.content.includes("<audio") ? (
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: message.content.replace(
+                    /<audio(.*?)>/,
+                    '<audio$1 class="w-full max-w-xs" style="display:block; margin:auto;">'
+                  ),
+                }}
+              />
+            ) : (
+              message.text || message.content
+            )}
           </div>
           {message.sender === "user" && (
             <Avatar className="h-8 w-8 shrink-0">
