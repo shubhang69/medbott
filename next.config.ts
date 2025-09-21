@@ -34,6 +34,21 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack(config) {
+    config.externals = [
+      ...(config.externals || []),
+      "@opentelemetry/sdk-node",
+      "@genkit-ai/firebase",
+    ];
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "handlebars/runtime": "handlebars/dist/cjs/handlebars.runtime",
+      handlebars: "handlebars/dist/cjs/handlebars",
+    };
+
+    return config;
+  },
+  outputFileTracingRoot: "../../",
 };
 
 export default nextConfig;

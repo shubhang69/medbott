@@ -21,7 +21,13 @@ import { useInView } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useChatHistory } from "@/hooks/use-chat-history";
 import type { Message } from "@/lib/types";
-import { BrainPointCloudModel } from "./brain-model-3d";
+import dynamic from "next/dynamic";
+
+const DynamicBrainPointCloudModel = dynamic(
+  () =>
+    import("./brain-model-3d").then((mod) => mod.DynamicBrainPointCloudModel),
+  { ssr: false }
+);
 
 export default function Home() {
   const [selectedPart, setSelectedPart] = useState("");
@@ -394,7 +400,7 @@ export default function Home() {
               transition={{ duration: 1, delay: 0.5 }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-full blur-3xl" />
-              <BrainPointCloudModel scale={[2, 2, 2]} />
+              <DynamicBrainPointCloudModel scale={[2, 2, 2]} />
             </motion.div>
           </motion.div>
         </section>
