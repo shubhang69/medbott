@@ -48,7 +48,6 @@ const nextConfig: NextConfig = {
 
     return config;
   },
-  outputFileTracingRoot: "../../",
 };
 
 export default nextConfig;
